@@ -1,0 +1,25 @@
+;; A stopwatch.
+;; Inspect the variables start and reset,
+;; and from the inspectors change the values
+(machine stopwatch
+	(var start := [false])
+	(var reset := [false])
+	(var seconds := [0])
+	(state waiting )
+	(on starting waiting -> tick t-st)
+	(event starting [start value])
+	(state tick)
+	(state tock (onexit [seconds := seconds + 1]))
+	(ontime 500 tick -> tock t-tito)
+	(ontime 500 tock -> tick t-toti)
+	
+	(on e-reset *-> resetting t-reset)
+	(event e-reset [reset value])
+	(state resetting
+		(onentry [reset := false. seconds := 0] ))
+	(eps resetting -> tick t-et)
+	
+	(on e-stop *-> waiting t-es)
+	(event e-stop [start value not])
+)
+(spawn stopwatch waiting)

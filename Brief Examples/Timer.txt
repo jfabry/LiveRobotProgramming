@@ -1,0 +1,19 @@
+;; a timer with 10 sec intervals
+
+(var minute := [0])
+(machine timer
+	(state zero)
+	(state ten)
+	(state twenty)
+	(state thirty)
+	(state fourty)
+	(state fifty
+		(onexit [minute := minute + 1]))
+	(ontime 10000 zero -> ten toten)
+	(ontime 10000 ten -> twenty totwenty)
+	(ontime 10000 twenty -> thirty tothirty)
+	(ontime 10000 thirty -> fourty tofourty)
+	(ontime 10000 fourty -> fifty tofifty)
+	(ontime 10000 fifty -> zero tozero)
+)
+(spawn timer zero)
