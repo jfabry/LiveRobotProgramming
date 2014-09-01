@@ -1,0 +1,36 @@
+;; A line follower for a differential drive robot
+;; Uses the Lego color sensor,
+;; position is front and center, and pointed to the line (down)
+(var sensor := [LRPEV3Bridge sensor3])
+(var mright := [LRPEV3Bridge motorA])
+(var mleft := [LRPEV3Bridge motorD])
+(var speed := [20])
+(var dist := [50])
+(machine follower
+	(state moving
+		(running [
+			mright turn: dist atSpeed: speed.
+			mleft turn: dist atSpeed: speed.
+			]))
+	(state looking
+		(machine lookalgo
+			(var looktime := [2000])
+			(state lookleft
+				(running [mright turn: dist / 10 atSpeed: speed.
+					mleft turn: dist / 10 atSpeed: speed negated.])
+				(onexit [looktime := looktime * 2]))
+			(state lookright
+				(running [mright turn: dist / 10 atSpeed: speed negated.
+					mleft turn: dist / 10 atSpeed: speed.])
+				(onexit [looktime := looktime*2]))
+			(ontime looktime lookright -> lookleft t-lr)
+			(ontime looktime lookleft -> lookright t-fail)
+			)
+		(onentry (spawn lookalgo lookright))
+		)
+	(on out moving -> looking t-ms)
+	(event out [(sensor read = 1) not])
+	(event in  [sensor read = 1])
+	(on in looking -> moving t-sm)
+)
+(spawn follower moving)
