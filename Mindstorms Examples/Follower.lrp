@@ -15,14 +15,14 @@
 	(state looking
 		(machine lookalgo
 			(var looktime := [2000])
-			(state lookleft
-				(running [mright turn: dist / 10 atSpeed: speed.
-					mleft turn: dist / 10 atSpeed: speed negated.])
-				(onexit [looktime := looktime * 2]))
 			(state lookright
 				(running [mright turn: dist / 10 atSpeed: speed negated.
 					mleft turn: dist / 10 atSpeed: speed.])
 				(onexit [looktime := looktime*2]))
+			(state lookleft
+				(running [mright turn: dist / 10 atSpeed: speed.
+					mleft turn: dist / 10 atSpeed: speed negated.])
+				(onexit [looktime := looktime * 2]))
 			(ontime looktime lookright -> lookleft t-lr)
 			(ontime looktime lookleft -> lookright t-fail)
 			)
