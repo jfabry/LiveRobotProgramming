@@ -1,0 +1,36 @@
+(var stop := [0])
+(var robulab := [LrpharosPackage uniqueInstance])
+(var minDistance := [0.5])
+(var f_vel := [0.2])
+(var t_vel := [0.5])
+
+(machine SimpleAvoid
+  (state forward
+    (onentry [robulab value forward: f_vel value])
+  )
+  (state stop
+    (onentry [robulab value stop])
+  )
+  (state avoid
+    (machine Avoid
+      (state stop
+        (onentry [robulab value stop])
+      )
+      (state turn
+        (onentry [robulab value turn: t_vel value])
+      )
+      (eps stop -> turn t-turn)
+     
+    )
+    (onentry (spawn Avoid stop))
+  )
+  
+  (on obstacle forward -> avoid t-avoid)
+  (on notObstacle avoid -> forward t-forward)
+  (on forceStop *-> stop t-forceStop)
+  
+  (event forceStop [stop value = 1])
+  (event obstacle [robulab value isThereAnObstacle: minDistance value])
+  (event notObstacle [(robulab value isThereAnObstacle: minDistance value) not])
+)
+(spawn SimpleAvoid forward)

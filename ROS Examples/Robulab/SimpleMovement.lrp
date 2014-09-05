@@ -1,0 +1,21 @@
+(var robulab := [LrpharosPackage uniqueInstance])
+(var stop := [0])
+(machine simple
+  (state forward
+    (onentry [robulab value forward: 0.1])
+  )
+  (state stop
+    (onentry [robulab value stop])
+  )
+  (state finish
+    (onentry [robulab value stop])
+  )
+  
+  (on forceStop *-> finish t-finish)
+  (event forceStop [stop value = 1])
+  
+  (ontime 2000 forward -> stop t-f)
+  (ontime 1000 stop -> forward t-s)
+)
+
+(spawn simple forward)

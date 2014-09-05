@@ -1,0 +1,51 @@
+(var stop := [0])
+(var robulab := [LrpharosPackage uniqueInstance])
+(var minDistance := [0.5])
+(var f_vel := [0.25])
+(var t_vel := [0.5])
+
+(machine HouseWalker
+  (state forward
+    (onentry [robulab value forward: f_vel value])
+  )
+  (state stop
+    (onentry [robulab value stop])
+  )
+  (state avoid
+    (machine Avoid
+      (state stop
+        (onentry [robulab value stop])
+      )
+      (state turnLeft
+        (onentry [robulab value turn: t_vel value])
+      )
+      
+      (state turnRight
+        (onentry [robulab value turn: t_vel value negated])
+      )
+      (on rightObstacle stop -> turnLeft t-lturn)
+      (on onlyRightObstacle turnRight -> turnLeft t-rlturn)
+      
+      (on leftObstacle stop -> turnRight t-rturn)
+      (on onlyLeftObstacle turnLeft -> turnRight t-lrturn)
+      (event rightObstacle [robulab value isThereARightObstacle: minDistance value])
+      (event leftObstacle [robulab value isThereALeftObstacle: minDistance value])
+      (event onlyRightObstacle 
+        [(robulab value isThereARightObstacle: minDistance value) 
+          and: [(robulab value isThereACompleteObstacle: minDistance value) not]])
+      (event onlyLeftObstacle 
+        [(robulab value isThereALeftObstacle: minDistance value) 
+        and: [(robulab value isThereACompleteObstacle: minDistance value) not]])
+    )
+    (onentry (spawn Avoid stop))
+  )
+  
+  (on obstacle forward -> avoid t-avoid)
+  (on notObstacle avoid -> forward t-forward)
+  (on forceStop *-> stop t-forceStop)
+  
+  (event forceStop [stop value = 1])
+  (event obstacle [robulab value isThereAnObstacle: minDistance value])
+  (event notObstacle [(robulab value isThereAnObstacle: minDistance value) not])
+)
+(spawn HouseWalker forward)

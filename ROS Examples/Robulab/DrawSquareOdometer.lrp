@@ -1,0 +1,30 @@
+(var robulab := [LrpharosPackage uniqueInstance])
+(var stop := [0])
+(var initPoint := [0@0])
+(var initAngle := [0])
+(machine square
+  (state forward
+    (onentry [
+      initPoint value: robulab value currentPosition.
+      robulab value forward: 0.1
+    ])
+  )
+  (state turn
+    (onentry [
+      initAngle value: robulab value currentAngle.
+      robulab value turn: 0.1
+    ])
+  )
+  
+  (on aDistance forward -> turn t-fw)
+  (event aDistance 
+    [(robulab value distanceFrom: initPoint value) >= 0.5])
+  (on aTurn turn -> forward t-turn)
+  (event aTurn [(robulab value angleFrom: initAngle value) >= Float halfPi ])
+  (state finish
+    (onentry [robulab value stop])
+  )
+  (on forceStop *-> finish t-finish)
+  (event forceStop [stop value = 1])
+)
+(spawn square forward)
