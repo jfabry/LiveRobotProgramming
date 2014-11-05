@@ -7,19 +7,19 @@
 	(var seconds := [0])
 	(state waiting )
 	(on starting waiting -> tick t-st)
-	(event starting [start value])
+	(event starting [start])
 	(state tick)
 	(state tock (onexit [seconds := seconds + 1]))
 	(ontime 500 tick -> tock t-tito)
 	(ontime 500 tock -> tick t-toti)
 	
 	(on e-reset *-> resetting t-reset)
-	(event e-reset [reset value])
+	(event e-reset [reset])
 	(state resetting
 		(onentry [reset := false. seconds := 0] ))
 	(eps resetting -> tick t-et)
 	
 	(on e-stop *-> waiting t-es)
-	(event e-stop [start value not])
+	(event e-stop [start not])
 )
 (spawn stopwatch waiting)
