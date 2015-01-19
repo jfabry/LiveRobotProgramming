@@ -1,0 +1,65 @@
+;;; New program created at 19 January 2015
+;;; Turtlebot will avoid an obstacle using the bump event
+;;; pub: move -> /mobile_base/commands/velocity
+;;; sub: bump <- /mobile_base/events/bumper
+;;; ** Using the new bridge, tested on gazebo
+
+(var f_vel := [0.5])
+(var t_vel := [2])
+(var finish_avoid := [false])
+(var bumpedValue := [0])
+(machine Avoidance
+	(state forward
+		(running [
+			robot move:[:data| data linear x: f_vel].
+		])
+	)
+	(state avoid
+		(machine Avoid
+			(state stop
+				(onentry [
+					finish_avoid := false.
+					robot move: [:data| data linear x: 0]
+				])
+			)
+			(state backwards
+				(running [robot move: [:data| data linear x: f_vel negated]])
+			)
+			(state turnDecision
+				(onentry  [bumpedValue := robot bump bumper])
+			)
+			(state turnLeft
+				(running [robot move: [:data| data angular z: t_vel]])
+			)
+			(state turnRight
+				(running [robot move: [:data| data angular z: t_vel negated]])
+			)
+			(state finish
+				(onentry [
+					robot move: [:data| data linear x: 0].
+					finish_avoid := true.
+					robot bump bumper: nil..
+				])
+			)
+			
+			(eps stop -> backwards t-sb)
+			(ontime 750 backwards -> turnDecision t-btd)
+			(on goRight turnDecision -> turnRight t-tdtr)
+			(on goLeft turnDecision -> turnLeft t-tdtl)
+			(ontime 1000 turnLeft -> finish t-tlf)
+			(ontime 1000 turnRight -> finish t-trf)
+			
+			(event goRight [bumpedValue == 0])
+			(event goLeft [(bumpedValue == 0) not] )
+		)
+		(onentry (spawn Avoid stop))
+	)
+	
+	(on bumped forward -> avoid t-fv)
+	(on finish_avoiding avoid -> forward t-vf)
+	(event bumped [
+		robot bump bumper isNotNil.
+	])
+	(event finish_avoiding [finish_avoid])
+)
+(spawn Avoidance forward)
