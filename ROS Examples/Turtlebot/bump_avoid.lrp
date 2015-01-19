@@ -1,0 +1,26 @@
+;;; New program created at 17 January 2015
+;;; Turtlebot will avoid an obstacle using the bump sensors
+;;; ** Incomplete functionality
+;;; ** Using the new bridge, not tested yet
+(var f_vel := [0.2])
+(var t_vel := [1])
+
+(var finish_avoid := [false])
+(machine Walker
+	(state forward
+		(running [robot move: [:data| data linear x: f_vel]])
+	)
+	(state avoid
+		(machine Avoid
+			(state stop
+				(onentry [robot move: [:data| linear x: 0]])
+			)
+		)
+	)
+	
+	(on bumped forward -> avoid t-avoid)
+	(on free avoid -> forward t-free)
+	(event bumped [robot base bumps_wheeldrops != 0])
+	(event free [finish_avoid])
+)
+(spawn Walker forward)

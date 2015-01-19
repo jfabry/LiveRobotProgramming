@@ -1,0 +1,61 @@
+;;; New program created at 16 January 2015
+;;; Turtlebot will avoid obstacles using the kinect
+;;; ** After a while, the program crashes (maybe memory problem?) 
+;;; ** Using the new bridge
+
+(var f_vel := [0.25])
+(var t_vel := [0.5])
+(var minimun_range := [0.7])
+(var take_nans := [ [:anArray| anArray reject: [:anElem| anElem isNaN]]])
+(machine Avoidance
+	(state forward
+		(running [robot move:[:data| data linear x: f_vel]])
+	)
+	(state avoid
+		(machine Avoid
+			(state stop
+				(onentry [robot move: [:data| data linear x: 0. data angular z: 0]])
+			)
+			(state turnLeft
+				(running [robot move: [:data| data angular z: t_vel]])
+			)
+			(state turnRight
+				(running [robot move: [:data| data angular z: t_vel negated]])
+			)
+			
+			(on leftObstacle stop -> turnRight t-rturn)
+			(on rightObstacle stop -> turnLeft t-lturn)
+			
+			(event leftObstacle [
+				|scan|
+				scan := take_nans value: robot scan ranges.
+				scan := scan last: scan size / 2.
+				scan min < minimun_range
+					
+			])
+			(event rightObstacle [
+				|scan|
+				scan := take_nans value: robot scan ranges.
+				scan := scan first: scan size / 2.
+				scan min < minimun_range
+			])
+		)
+		
+		(onentry (spawn Avoid stop))
+	)
+	
+	(on obstacle forward -> avoid t-avoid)
+	(on nonObstacle avoid -> forward t-forward)
+
+	(event obstacle [
+		|scan|
+		scan := take_nans value: robot scan ranges.
+		scan min < minimun_range
+	])
+	(event nonObstacle [
+		|scan|
+		scan := take_nans value: robot scan ranges.
+		scan min >= minimun_range
+	])
+)
+(spawn Avoidance forward)
