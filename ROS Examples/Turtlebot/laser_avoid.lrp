@@ -1,6 +1,8 @@
 ;;; New program created at 16 January 2015
 ;;; Turtlebot will avoid obstacles using the kinect
-;;; ** After a while, the program crashes (maybe memory problem?) 
+;;; scan <- /scan
+;;; move -> /mobile_base/commands/velocity
+;;; ** The program does not crash anymore
 ;;; ** Using the new bridge
 
 (var f_vel := [0.25])
