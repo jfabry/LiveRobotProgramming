@@ -1,9 +1,11 @@
-;;; New program created at 17 January 2015
-;;; Turtlebot will avoid an obstacle using the bump sensors
-;;; ** Incomplete functionality
-;;; ** Using the new bridge, not tested yet
-(var f_vel := [0.2])
-(var t_vel := [1])
+;;; Turtlebot will avoid an obstacle using the bump event
+;;; pub: move -> /mobile_base/commands/velocity
+;;; sub: bump <- /mobile_base/sensors/core
+;;; ** Using the new bridge, tested on real Turtlebot
+
+(var f_vel := [0.5])
+(var t_vel := [2])
+(var bump_value := [0])
 
 (var finish_avoid := [false])
 (machine Walker
@@ -13,14 +15,49 @@
 	(state avoid
 		(machine Avoid
 			(state stop
-				(onentry [robot move: [:data| linear x: 0]])
+				(onentry [
+					finish_avoid := false.
+					robot move: [:data| data linear x: 0]
+				])
 			)
+			(state backward
+				(onentry [robot move: [:data| data linear x: f_vel negated]])
+			)
+			(state turnDecision)
+			(state turnLeft
+				(onentry [robot move:[:data| data angular z: t_vel]])
+			)
+			(state turnRight
+				(onentry [robot move:[:data| data angular z: t_vel negated]])
+			)
+			(state finish
+				(onentry [finish_avoid := true])
+			)
+			
+			(eps stop -> backward t-ss)
+			(ontime 750 backward -> turnDecision t-backward)
+			(on bumpLeft turnDecision -> turnRight t-decR)
+			(on bumpRight turnDecision -> turnLeft t-decL)
+			
+			(ontime 1000 turnRight -> finish t-rf)
+			(ontime 1000 turnLeft -> finish t-lf)
+			
+			(event bumpLeft [
+				bump_value == 2 or: [bump_value == 3]	
+			])
+			(event bumpRight [
+				bump_value == 1
+			])
 		)
+		(onentry (spawn Avoid stop))
 	)
 	
 	(on bumped forward -> avoid t-avoid)
 	(on free avoid -> forward t-free)
-	(event bumped [robot base bumps_wheeldrops != 0])
+	(event bumped [
+		bump_value = robot base bumps_wheeldrops.
+		(bump_value  == 0) not
+	])
 	(event free [finish_avoid])
 )
 (spawn Walker forward)

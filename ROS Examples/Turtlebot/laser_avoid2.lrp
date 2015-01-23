@@ -1,0 +1,104 @@
+;;; New program created at 16 January 2015
+;;; Turtlebot will avoid obstacles using the kinect
+;;; If robot is turning right and appears an obstacle on the right when there is none on the left,
+;;; it will change the turning.
+;;; scan <- /scan
+;;; move -> /mobile_base/commands/velocity
+;;; ** Using the new bridge
+
+(var f_vel := [0.25])
+(var t_vel := [0.5])
+(var minimun_range := [0.7])
+(var take_nans := [ [:anArray| anArray reject: [:anElem| anElem isNaN]]])
+(machine Avoidance
+	(state forward
+		(running [robot move:[:data| data linear x: f_vel]])
+	)
+	(state avoid
+		(machine Avoid
+			(var left_side := [[:anArray|
+				anArray := take_nans value: anArray.
+				anArray := anArray last: scan size /2.
+				anArray.		
+			]])
+			(var right_side := [[:anArray|
+				anArray := take_nans value: anArray.
+				anArray := anArray first: scan size /2.
+				anArray		
+			]])
+			(state stop
+				(onentry [robot move: [:data| data linear x: 0. data angular z: 0]])
+			)
+			(state turnLeft
+				(running [robot move: [:data| data angular z: t_vel]])
+			)
+			(state turnRight
+				(running [robot move: [:data| data angular z: t_vel negated]])
+			)
+			
+			(on leftObstacle stop -> turnRight t-rturn)
+			(on rightObstacle stop -> turnLeft t-lturn)
+			(on onlyRightObstacle turnRight -> turnLeft t-srl)
+			(on onlyLeftObstacle turnLeft -> turnRight t-slr)
+			
+			(event leftObstacle [
+				|scan|
+				scan := left_side value: robot scan ranges.
+				scan ifEmpty: [false] ifNotEmpty:[scan min < minimun_range]
+					
+			])
+			(event rightObstacle [
+				|scan|
+				scan := right_side value: robot scan ranges
+				scan ifEmpty: [false] ifNotEmpty:[scan min < minimun_range]
+			])
+		
+			(event onlyRightObstacle [
+				|right left|
+				right := right_side value: robot scan ranges.
+				left := left_side value: robot scan ranges.
+				right 
+					ifEmpty: [false]
+					ifNotEmpty:[
+						right min < minum_range and: [
+							left  isEmpty or:[
+								left min > minimum_range.
+							]
+						]		
+					]
+			])
+		
+			(event onlyRightObstacle [
+				|right left|
+				right := right_side value: robot scan ranges.
+				left := left_side value: robot scan ranges.
+				left 
+					ifEmpty: [false]
+					ifNotEmpty:[
+						left min < minum_range and: [
+							right  isEmpty or:[
+								right min > minimum_range.
+							]
+						]		
+					]
+			])
+		)
+		
+		(onentry (spawn Avoid stop))
+	)
+	
+	(on obstacle forward -> avoid t-avoid)
+	(on nonObstacle avoid -> forward t-forward)
+
+	(event obstacle [
+		|scan|
+		scan := take_nans value: robot scan ranges.
+		scan ifEmpty: [false] ifNotEmpty:[scan min < minimun_range]
+	])
+	(event nonObstacle [
+		|scan|
+		scan := take_nans value: robot scan ranges.
+		scan ifEmpty: [true] ifNotEmpty:[scan min >= minimun_range]
+	])
+)
+(spawn Avoidance forward)
