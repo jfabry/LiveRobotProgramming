@@ -1,0 +1,37 @@
+;; Start on a right hand rule maze robot
+;; For the Robulab Kompai at the Ecole Des Mines de Douai
+;;
+; motor -> /kompai1/command_velocity 
+; scan <- /kompai1/scan (?)
+
+(machine mazerunner
+	(var nowall := [true])
+	(state forward
+		(running [robot motor:
+			[ :msg | msg linear x:  0.2]]))
+	(on wallisclose forward -> wall hit)
+	(event wallisclose
+		[(robot scan ranges copyFrom: 60 to: 220)
+			min < 0.35 ])
+	(state wall
+		(onentry [nowall := false]))
+	(eps wall -> backslow avoiding)
+	(state backslow
+		(running [robot motor:
+			[ :msg | msg linear x:  -0.1]]))		
+	(ontime 500 backslow -> avoid turn)
+	(state avoid
+		(machine strategy 
+			(state turnright
+				(running [robot motor:
+					[ :msg| msg angular z: -0.2 ]]))
+			(state ready
+				(onentry [nowall := true]))
+			(ontime 1000 turnright -> ready rdy)
+		)
+		(onentry (spawn strategy turnright)))
+	(on wallisclose avoid -> wall hitagain)
+	(on clearwall avoid -> forward go)
+	(event clearwall [nowall])
+)
+(spawn mazerunner forward)

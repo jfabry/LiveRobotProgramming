@@ -1,0 +1,10 @@
+;; Go around in a rectangle
+;; For the Robulab Kompai at the Ecole Des Mines de Douai
+;;
+; p <- /kompai1/pose
+; motor -> /kompai1/command_velocity 
+; init -> /initialpose
+
+(var resetblock := [ [ :msg | msg pose covariance:  { 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0 . 0.0}]])(var speed :=[0.2])(var turn := [0.4])(var sdist := [3000])(var goblock := [[ :msg| msg linear x: speed ]])(var turnblock := [[ :msg| msg angular z: turn ]])(machine rectangle	(state turnNorth (running [robot motor: turnblock]))	(state goNorth (running [robot motor: goblock ]))	(state turnWest (running [robot motor: turnblock]))	(state goWest (running [robot motor: goblock ]))	(state turnSouth (running [robot motor: turnblock]))	(state goSouth (running [robot motor: goblock ]))	(state turnEast (running [robot motor: turnblock]))	(state goEast (running [robot motor: goblock ]))	(ontime sdist goNorth -> turnWest t1)	(ontime sdist goWest -> turnSouth t2)	(ontime sdist goSouth -> turnEast t3)	(ontime sdist goEast -> turnNorth t4)	(on north turnNorth -> goNorth turn1)	(on west turnWest -> goWest turn2)	(on nearsouth turnSouth -> turnSlowSouth turn2_5)	(on south turnSlowSouth -> goSouth turn3)	(on east turnEast -> goEast turn4)		(event north		[(robot p pose orientation z) abs < 0.02])	(event west 		[(robot p pose orientation z - 0.71) abs < 0.02])	(event south 		[(robot p pose orientation z abs - 1) abs < 0.002])	(event east		 [(robot p pose orientation z + 0.71) abs < 0.02])	(state reset		(onentry [robot init: resetblock]))		(state turnSlowSouth		 (running [robot motor: [ :msg| msg angular z: turn /2 ]]))	(event nearsouth		[(robot p pose orientation z - 0.98) abs < 0.02])			(eps reset -> goNorth rn))
+
+(spawn rectangle reset)

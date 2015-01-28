@@ -1,0 +1,18 @@
+;; Left right shake movement
+;; For the Robulab Kompai at the Ecole Des Mines de Douai
+;;
+; p <- /kompai1/pose
+; motor -> /kompai1/command_velocity 
+(var scope := [0.2])
+(var speed :=[0.2])
+(machine leftright
+	(state turnleft
+		(running [robot motor: [ :msg| msg angular z: speed ]]))
+	(state turnright
+		(running [robot motor: [ :msg| msg angular z: speed negated ]]))
+	(on tooright turnright -> turnleft totheleft)
+	(on tooleft turnleft -> turnright totheright)
+	(event tooleft [robot p pose orientation z > scope])
+	(event tooright [robot p pose orientation z < scope negated ])
+)
+(spawn leftright turnright)
