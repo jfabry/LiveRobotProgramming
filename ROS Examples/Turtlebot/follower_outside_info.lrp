@@ -1,0 +1,27 @@
+;;; New program created at 28 January 2015
+;;; Turtlebot will follow a single object
+;;; It uses special info passed by another node called "follower_info"
+;;; "follower_info" is a self created node writed in c++ because it uses the Point Cloud Library (http://www.pointclouds.org/)
+;;; centroid <- /follower_data/centroid
+;;; move -> /mobile_base/commands/velocity
+;;; ** Using the new bridge 
+
+(var scale_angular := [5])
+(var scale_linear := [1])
+(var follow_distance := [0.6])
+(machine follow
+	(state idle
+		(onentry [robot move: [:data| data linear x: 0. data angular z: 0]])
+	)
+	(state follow
+		(running [robot move: [:data| 
+			data linear x: scale_linear * (robot centroid z - follow_distance).
+			data angular  z: scale_angular * robot centroid x negated.
+		]])
+	)
+	(on hasCentroid idle -> follow t-if)
+	(on noCentroid follow -> idle t-fi)
+	(event hasCentroid [robot centroid has_centroid])
+	(event noCentroid [robot centroid has_centroid not])
+)
+(spawn follow idle)
