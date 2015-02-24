@@ -1,6 +1,6 @@
 ;;; A stairs climber building using the MindStorm expansion set
 ;;; Use ontime transition to estimate the second step of the climbing
-;;; Watch example in: 
+;;; Watch example in: http://youtu.be/6HXcKwMO8Fo
 
 (var ev3 := [LRPEV3Bridge instance])
 (var backWheelsSpeed := [-50])
