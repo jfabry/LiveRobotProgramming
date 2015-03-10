@@ -1,8 +1,8 @@
 ;;; A stairs climber building using the MindStorm expansion set
+;;; Use the new JetStorm Bridge funcionality
 ;;; Use ontime transition to estimate the second step of the climbing
 ;;; Watch example in: http://youtu.be/6HXcKwMO8Fo
 
-(var ev3 := [LRPEV3Bridge instance])
 (var backWheelsSpeed := [-50])
 (var frontWheelsSpeed := [-50])
 (var climbSpeed := [-50])
@@ -11,56 +11,56 @@
 (machine Stair
   (state forward
     (onentry [
-      ev3 motorA startAtSpeed: backWheelsSpeed.
-      ev3 motorB startAtSpeed: frontWheelsSpeed.
-      startGyro := ev3 sensor2 read.
+      robot motorA startAtSpeed: backWheelsSpeed.
+      robot motorB startAtSpeed: frontWheelsSpeed.
+      startGyro := robot sensor2 read.
       ]
     )
     (onexit [
-      LRPEV3Bridge fullStop.
+      robot fullStop.
       ]
     )
   )
   
   (state climb
     (onentry [
-      ev3 motorD startAtSpeed: climbSpeed.
-      ev3 motorB startAtSpeed: frontWheelsSpeed.
+      robot motorD startAtSpeed: climbSpeed.
+      robot motorB startAtSpeed: frontWheelsSpeed.
       ]
     )
     (onexit [
-      LRPEV3Bridge fullStop.
+      robot fullStop.
       ]
     )
   )
   
   (state forward2
     (onentry [
-      ev3 motorA startAtSpeed: backWheelsSpeed.
-      ev3 motorB startAtSpeed: frontWheelsSpeed.
+      robot motorA startAtSpeed: backWheelsSpeed.
+      robot motorB startAtSpeed: frontWheelsSpeed.
       ]
     )
   )
   
   (state climb2
     (onentry [
-      ev3 motorD startAtSpeed: climbSpeed negated.
+      robot motorD startAtSpeed: climbSpeed negated.
       ]
     )
     (onexit [
-      LRPEV3Bridge fullStop 
+      robot fullStop 
       ]
     )
   )
   
   (state stop
-    (onentry [LRPEV3Bridge fullStop])
+    (onentry [robot fullStop])
   )
   
   (on incline forward -> climb incline)
   (on finishClimb climb -> forward2 finishClimb)
-  (event finishClimb [ev3 sensor3 read == 1])
-  (event incline [ev3 sensor2 read > (deltaGyro + startGyro)])
+  (event finishClimb [robot sensor3 read == 1])
+  (event incline [robot sensor2 read > (deltaGyro + startGyro)])
   
   (ontime 3000 forward2 -> climb2 for2)
   (ontime 6000 climb2 -> forward loop)
