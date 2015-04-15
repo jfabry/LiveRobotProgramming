@@ -1,0 +1,33 @@
+;; A Random Space Explorer behavior for a differential drive robot
+;; Wall collisions are detected with the ultrasonic sensor
+
+(var speed :=[20])
+(var timeout := [1000 atRandom])
+(machine Dora
+  (state forward
+    (onentry [
+      robot motorA startAtSpeed: speed.
+      robot motorD startAtSpeed: speed.
+    ])
+    (onexit [robot fullStop]))
+  (state shock
+    (onentry [
+      robot motorA startAtSpeed: speed negated.
+      robot motorD startAtSpeed: speed negated.
+    ])
+    (onexit [robot fullStop]))
+  (state turn
+    (onentry [
+      robot motorA startAtSpeed: speed.
+      robot motorD startAtSpeed: speed negated
+    ])
+    (onexit [
+      robot fullStop.
+      timeout := 1000 atRandom
+    ]))
+  (ontime 500 shock -> turn st)
+  (ontime timeout turn -> forward tf)
+  (on toclose forward -> shock fs)
+  (event toclose [robot sensor2 read < 10])
+)
+(spawn Dora forward)

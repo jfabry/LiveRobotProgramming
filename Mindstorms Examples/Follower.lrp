@@ -1,9 +1,9 @@
 ;; A line follower for a differential drive robot
 ;; Uses the Lego color sensor,
 ;; position is front and center, and pointed to the line (down)
-(var sensor := [LRPEV3Bridge sensor3])
-(var mright := [LRPEV3Bridge motorA])
-(var mleft := [LRPEV3Bridge motorD])
+(var sensor := [robot sensor3])
+(var mright := [robot motorA])
+(var mleft := [robot motorD])
 (var speed := [20])
 (var dist := [50])
 (machine follower
