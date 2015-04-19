@@ -4,33 +4,40 @@
 (var sensor := [robot sensor3])
 (var mright := [robot motorA])
 (var mleft := [robot motorD])
-(var speed := [20])
-(var dist := [50])
+(var speed := [5])
 (machine follower
+	(state init
+		(onentry [sensor setMode: #Mode2])
+	)
 	(state moving
-		(running [
-			mright turn: dist atSpeed: speed.
-			mleft turn: dist atSpeed: speed.
-			]))
+		(onentry [
+			mright startAtSpeed: speed.
+			mleft startAtSpeed: speed.
+			])
+		(onexit [robot fullStop])
+	)
 	(state looking
 		(machine lookalgo
 			(var looktime := [2000])
 			(state lookright
-				(running [mright turn: dist / 10 atSpeed: speed negated.
-					mleft turn: dist / 10 atSpeed: speed.])
+				(onentry 
+					[mright startAtSpeed: speed negated.
+					mleft startAtSpeed: speed.])
 				(onexit [looktime := looktime*2]))
 			(state lookleft
-				(running [mright turn: dist / 10 atSpeed: speed.
-					mleft turn: dist / 10 atSpeed: speed negated.])
+				(onentry 
+					[mright startAtSpeed: speed.
+					mleft startAtSpeed: speed negated.])
 				(onexit [looktime := looktime * 2]))
-			(ontime looktime lookright -> lookleft t-lr)
-			(ontime looktime lookleft -> lookright t-fail)
+			(ontime looktime lookright -> lookleft tlr)
+			(ontime looktime lookleft -> lookright tfail)
 			)
 		(onentry (spawn lookalgo lookright))
 		)
-	(on out moving -> looking t-ms)
+	(eps init -> moving tinit)
+	(on out moving -> looking tms)
 	(event out [(sensor read = 1) not])
 	(event in  [sensor read = 1])
-	(on in looking -> moving t-sm)
+	(on in looking -> moving tsm)
 )
-(spawn follower moving)
+(spawn follower init)
