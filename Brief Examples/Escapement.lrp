@@ -1,0 +1,1 @@
+;;; A simple escapement(machine esc	(state tick)	(state tock)	(ontime 500 tick -> tock tito)	(ontime 500 tock -> tick toti))(spawn esc tick)
