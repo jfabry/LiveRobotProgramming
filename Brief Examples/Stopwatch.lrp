@@ -1,25 +1,1 @@
-;; A stopwatch.
-;; Inspect the variables start and reset,
-;; and from the inspectors change the values
-(machine stopwatch
-	(var start := [false])
-	(var reset := [false])
-	(var seconds := [0])
-	(state waiting )
-	(on starting waiting -> tick t-st)
-	(event starting [start])
-	(state tick)
-	(state tock (onexit [seconds := seconds + 1]))
-	(ontime 500 tick -> tock t-tito)
-	(ontime 500 tock -> tick t-toti)
-	
-	(on e-reset *-> resetting t-reset)
-	(event e-reset [reset])
-	(state resetting
-		(onentry [reset := false. seconds := 0] ))
-	(eps resetting -> tick t-et)
-	
-	(on e-stop *-> waiting t-es)
-	(event e-stop [start not])
-)
-(spawn stopwatch waiting)
+;; A stopwatch.;; Inspect the variables start and reset,;; and from the inspectors change the values(machine stopwatch	(var start := [false])	(var reset := [false])	(var seconds := [0])	(state waiting )	(on e_starting waiting -> tick t_st)	(event e_starting [start])	(state tick)	(state tock (onexit [seconds := seconds + 1]))	(ontime 500 tick -> tock t_tito)	(ontime 500 tock -> tick t_toti)		(on e_reset *-> resetting t_reset)	(event e_reset [reset])	(state resetting		(onentry [reset := false. seconds := 0] ))	(eps resetting -> tick t_et)		(on e_stop *-> waiting t_es)	(event e_stop [start not]))(spawn stopwatch waiting)

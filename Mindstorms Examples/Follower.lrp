@@ -4,33 +4,40 @@
 (var sensor := [robot sensor3])
 (var mright := [robot motorA])
 (var mleft := [robot motorD])
-(var speed := [5])
+(var speed := [4])
 (machine follower
 	(state init
 		(onentry [sensor setMode: #Mode2])
 	)
 	(state moving
 		(onentry [
-			mright startAtSpeed: speed.
-			mleft startAtSpeed: speed.
+			mright startAtSpeed: speed * 2.
+			mleft startAtSpeed: speed * 2.
 			])
 		(onexit [robot fullStop])
 	)
 	(state looking
 		(machine lookalgo
-			(var looktime := [2000])
+			(var looktime := [1000])
 			(state lookright
 				(onentry 
 					[mright startAtSpeed: speed negated.
-					mleft startAtSpeed: speed.])
-				(onexit [looktime := looktime*2]))
+					mleft startAtSpeed: speed.]))
 			(state lookleft
+				)
+			(state centerfromright
 				(onentry 
 					[mright startAtSpeed: speed.
-					mleft startAtSpeed: speed negated.])
+					mleft startAtSpeed: speed negated.]))
+			(state centerfromleft
+				(onentry 
+					[mright startAtSpeed: speed negated.
+					mleft startAtSpeed: speed.])
 				(onexit [looktime := looktime * 2]))
-			(ontime looktime lookright -> lookleft tlr)
-			(ontime looktime lookleft -> lookright tfail)
+			(ontime looktime lookright -> centerfromright tlrb)
+			(ontime looktime centerfromright -> lookleft tlr)
+			(ontime looktime lookleft -> centerfromleft tfail)
+			(ontime looktime centerfromleft -> lookright tfailb)
 			)
 		(onentry (spawn lookalgo lookright))
 		)

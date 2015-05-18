@@ -1,4 +1,3 @@
-;;; New program created at 17 April 2015
 ;; A Random Space Explorer behavior for a differential drive robot
 ;; Wall collisions are detected with the ultrasonic sensor and touch sensors
 
@@ -28,10 +27,10 @@
     ]))
   (ontime 500 shock -> turn st)
   (ontime timeout turn -> forward tf)
-  (on toclose forward -> shock fs)
+  (on tooclose forward -> shock fs)
   (on shockLeft forward -> shock sl)
   (on shockRight forward -> shock sf)
-  (event toclose [robot sensor2 read < 200])
+  (event tooclose [robot sensor2 read < 200])
   (event shockLeft [robot sensor4 read = 1])
   (event shockRight [robot sensor1 read = 1])
 )
