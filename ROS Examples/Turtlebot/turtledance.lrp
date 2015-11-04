@@ -1,0 +1,52 @@
+;;; Make the turtlebot dance
+;; Supposes /joint_states are held in joint
+;; and mobile base velocity command is through velocity
+;; uses first joint position to determine turn angles and move distance
+;; NOTE real turtlebot no longer publishes in /joint_states, use Gazebo
+(machine dance
+	(var pos :=[0])
+	(state forward
+		(onentry [pos := robot joint position first])
+		(running [robot velocity: [:msg | msg linear x: 0.15]])
+	)
+	(event fowend [(robot joint position first - pos) > 20])
+
+	(state forwtwo
+		(onentry [pos := robot joint position first])
+		(running [robot velocity: [:msg | msg linear x: 0.15]])
+	)
+	;same as above but different name to distinguish where in the dance sequence they are
+	
+	(state backward 
+		(onentry [pos := robot joint position first])
+		(running [robot velocity:
+			[:msg | msg linear x: 0.15 negated]])
+	)
+	(event backwend [(pos - robot joint position first) > 20])
+
+	(state minninety
+		(onentry [pos := robot joint position first.])
+		(running [robot velocity: [:msg | msg angular z: 0.4]])
+	)
+	(event minninend [robot joint position first < (pos - 5)])
+
+	(state ninety 
+		(onentry [pos := robot joint position first])
+		(running [robot velocity: [:msg | msg angular z: 0.4 negated]])
+	)
+	(event ninend [robot joint position first > (pos + 5)]);??
+
+	(state twoseventy 
+		(onentry [pos := robot joint position first])
+		(running [robot velocity: [:msg | msg angular z: 0.4 negated]])
+	)
+	(event twosevend [robot joint position first > (pos + 15)])
+
+	(on backwend backward -> twoseventy)
+	(on twosevend twoseventy -> forward)
+	(on fowend forward -> ninety)
+	(on ninend ninety -> forwtwo)
+	(on fowend forwtwo -> minninety)
+	(on minninend minninety -> backward)
+)
+(spawn dance backward)
