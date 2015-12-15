@@ -7,5 +7,5 @@ From within LRP action blocks (i.e. Smalltalk code) `robot sensor1` to `robot se
 To get sensor values, send the message `read` to a sensor.
 To have the motor operate there are multiple possible ways.
 The most straightforward is something like `robot motorA startAtSpeed: 50` and `robot motorA stop`.
-We advise you to browse the motor classes and examine the examples here.
+We advise you to browse the motor classes and examine the examples there.
 
