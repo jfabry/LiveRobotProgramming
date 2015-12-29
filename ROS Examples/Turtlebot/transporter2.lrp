@@ -1,0 +1,69 @@
+;;; Robot asks for a direction, goes there, 
+;;; wait for a bump and asks again
+;;; It uses a simple generic interface
+;;; move -> /mobile_base/commands/velocity
+;;; goal -> /move_base_simple/goal
+;;; text -> /lrp/show_text
+;;; askDestination -> /lrp/input_text
+;;; base <- /mobile_base/sensors/core
+;;; reached <- /move_base/result
+;;; destination <- /lrp/input_data
+
+(var destinations := [
+	{	#init -> (0@ -2).
+		#table -> (3.23@ -0.9).
+		#left -> (2.20@ 0.5).
+		#right -> (3@ -2.7)
+	} asDictionary
+	]
+)
+
+(machine Transporter
+
+	(state waitForDestination
+		(onentry [
+			robot destination: nil.
+			robot askDestination: 
+				[:msg| msg data: 'Where should I go']
+		])
+	)
+	(state goToDestination
+		;orientation needs coherent values
+		(onentry [
+			robot reached: nil.
+			robot goal: [:msg| |destination|
+				destination := 
+					destinations 
+						at: (robot destination data)
+						ifAbsent: (destinations at: #init).
+				msg header frame_id: 'map'.
+				msg pose
+					position x: destination x.
+				msg pose
+					position y: destination y.
+				msg pose
+					orientation z: 0.892.
+				msg pose
+					orientation w: -1.5.	
+			]
+		])
+	)
+	
+	(state waitForActions
+		(onentry 
+			[robot text: [:msg| msg data: 
+'I reached my destination, waiting for bumping to proceed']])
+	)
+	
+	
+	(on hasDestination waitForDestination -> goToDestination)
+	(on reachedDestination goToDestination -> waitForActions)
+	(on actionsDone waitForActions -> waitForDestination)
+	
+	(event hasDestination [robot destination isNotNil])
+	(event reachedDestination [robot reached isNotNil])
+	(event actionsDone 
+				[(robot base bumps_wheeldrops == 0) not])
+
+)
+(spawn Transporter waitForDestination)
