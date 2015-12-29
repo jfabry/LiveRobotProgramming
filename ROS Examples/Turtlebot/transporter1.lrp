@@ -1,0 +1,69 @@
+;;; Robot receive an object, goes to a fix destination and comes back
+;;; move -> /mobile_base/commands/velocity
+;;; goal -> /move_base_simple/goal
+;;; base <- /mobile_base/sensors/core
+;;; reached <- /move_base/result
+
+(var hasObject := [false])
+(var destination := [nil])
+
+(machine Transporter
+	(state waitForObject
+		(onentry [hasObject := false.])
+	)
+	(state waitForDestination
+		(onentry [destination := nil])
+	)
+	(state goToDestination
+		;orientation needs coherent values
+		(onentry [
+			robot reached: nil.
+			robot goal: [:msg|
+				msg header frame_id: 'map'.
+				msg pose
+					position x: destination x.
+				msg pose
+					position y: destination y.
+				msg pose
+					orientation z: 0.892.
+				msg pose
+					orientation w: -1.5.	
+			]
+		])
+	)
+	(state waitForRetrieving)
+	(state backward
+		(running [robot move: [:msg| msg linear x: -0.1]])
+	)
+	(state return
+		(onentry [
+			robot reached: nil.
+			robot goal: [:msg|
+				msg header frame_id: 'map'.
+				msg pose
+					position x: 0.
+				msg pose
+					position y: -2.
+				msg pose
+					orientation z: 0.892.
+				msg pose
+					orientation w: -1.5.	
+			]
+		])
+	)
+	
+	(on hasObject waitForObject -> waitForDestination)
+	(on hasDestination waitForDestination -> goToDestination)
+	(on reachedDestination goToDestination -> waitForRetrieving)
+	(on objectDelivered waitForRetrieving -> backward)
+	(ontime 500 backward -> return)
+	(on returned return -> waitForObject)
+	
+	(event hasObject [hasObject])
+	(event hasDestination [destination isNotNil])
+	(event reachedDestination [robot reached isNotNil])
+	(event objectDelivered 
+		[(robot base bumps_wheeldrops == 0) not])
+	(event returned [robot reached isNotNil])
+)
+(spawn Transporter waitForObject)
