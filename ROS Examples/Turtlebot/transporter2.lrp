@@ -1,6 +1,8 @@
 ;;; Robot asks for a direction, goes there, 
 ;;; wait for a bump and asks again
-;;; It uses a simple generic interface
+;;; It uses a simple generic interface in the side of the robot
+;;; The interface is a rosnode called: basic_interface
+;;; This rosnode is inside the package: lrp_interface
 ;;; move -> /mobile_base/commands/velocity
 ;;; goal -> /move_base_simple/goal
 ;;; text -> /lrp/show_text
