@@ -29,8 +29,12 @@ def monitor_bumper(ud, msg):
 def monitor_destination(ud, msg):
     global destinations
     global destination
-    destination = destinations[msg.data]
-   
+
+    if msg.data in destinations:
+        destination = destinations[msg.data]
+    else:
+        destination = destinations["init"]
+
     return False
 
 def movement_goal_cb(userdata, goal):
