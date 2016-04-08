@@ -1,0 +1,16 @@
+;;; New program created by johanfabry on 7 April 2016
+;; Let the PR2 say increasing numbers
+;; needs topic2festival to be running
+;;
+;; speak -> speakme topic
+;;
+(var time := [0])
+(machine m
+	(state sum
+		(onentry [time := time + 1]))
+	(state speak
+		(onentry [robot speak: [:str | str data: time asString]]))
+	(ontime 1000 sum -> speak)
+	(ontime 1000 speak -> sum)
+	)
+(spawn m sum)

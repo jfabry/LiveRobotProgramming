@@ -1,0 +1,51 @@
+;;; New program created by johanfabry on 7 April 2016
+;; Move the PR2 robot by means of the arms. First you must do:
+;; rosrun pr2_controller_manager pr2_controller_manager stop r_arm_controller
+;;
+;; joints <- joint_states
+;; move -> /base_controller/command
+;;
+(var rsl :=
+	[[|joints|
+	joints := robot joints.
+	joints position at:
+		(joints name indexOf: 'r_shoulder_lift_joint')]])
+(var turn :=
+	[[|joints val|
+	joints := robot joints.
+	val := joints position at:
+		(joints name indexOf: 'r_shoulder_pan_joint').
+	(val < -0.35)
+		ifTrue: [ -0.3 ]
+		ifFalse: [val > 0.4
+			ifTrue: [ 0.3 ]
+			ifFalse: [0]]]])
+(machine mover
+	(state rest)
+	(state back
+		(running [robot move:
+			[:twist| twist linear x: -0.1.
+						twist angular z: turn value.]]))
+	(state slow 
+		(running [robot move:
+			[:twist| twist linear x: 0.1.
+						twist angular z: turn value.]]))
+	(state fast
+		(running [robot move:
+			[:twist| twist linear x: 0.3.
+						twist angular z: turn value.]]))
+	(event tback [rsl value > 1.12 ])
+	(event trest [|val|
+		val := rsl value.
+		val < 1.12 and: [val > 0.9 ]])
+	(event tslow [|val|
+		val := rsl value.
+		val < 0.9 and: [ val > 0.4 ]])
+	(event tfast [rsl value < 0.4])
+	(on trest *-> rest)
+	(on tback rest -> back)
+	(on tslow rest -> slow)
+	(on tslow fast -> slow)
+	(on tfast slow -> fast)
+)
+(spawn mover rest)
