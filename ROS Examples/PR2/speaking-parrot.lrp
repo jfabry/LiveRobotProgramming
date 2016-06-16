@@ -1,0 +1,19 @@
+;;
+;; speak -> /speakme
+;;
+;; listen <- /speech_recon
+
+(machine speaking_parrot
+	
+	(state talking
+		(onentry [robot speak:
+				[:msg | msg data: robot listen data]]))
+	(state listening
+		(onentry [robot listen: nil]))
+		
+	(event heardSomething [robot listen notNil ])
+
+	(on heardSomething listening -> talking)
+	(eps talking -> listening)
+
+)
