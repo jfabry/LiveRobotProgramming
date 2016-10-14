@@ -4,7 +4,27 @@ from naoqi import ALProxy
 
 class MyAnimation:
 
-     def waveHand(self):
+    def searchHead(self):
+        names = list()
+        times = list()
+        keys = list()
+
+        names.append("HeadPitch")
+        times.append([ 1, 3, 5, 7, 9, 11, 13, 15, 17])
+        keys.append([-0.3, -0.3, 0.3, 0.3, -0.3, -0.3, 0.3, 0.3, -0.3])
+
+        names.append("HeadYaw")
+        times.append([ 1, 3, 5, 7, 9, 11, 13, 15, 17])
+        keys.append([-0.5, -0.3, -0.3 , 0, 0, 0.3, 0.3, 0.5, 0.5])
+
+        try:
+          motion = ALProxy("ALMotion", '169.254.254.250', 9559)
+         
+          return motion.post.angleInterpolation(names, keys, times, True)
+        except BaseException, err:
+          print err
+
+    def waveHand(self):
         names = list()
         times = list()
         keys = list()
@@ -66,14 +86,16 @@ class MyAnimation:
         keys.append([-0.312978, -0.303775, 0.182504])
 
         try:
-          motion = ALProxy("ALMotion", '192.168.2.24', 9559)
+          motion = ALProxy("ALMotion", '169.254.254.250', 9559)
          
-          motion.angleInterpolation(names, keys, times, True)
+          idTask = motion.post.angleInterpolation(names, keys, times, True)
+          return idTask
         except BaseException, err:
           print err
 
+
 def main():
-    app = qi.Application(url='tcp://192.168.2.24:9559')
+    app = qi.Application(url='tcp://169.254.254.250:9559')
     app.start()
     session = app.session
     myAnimation = MyAnimation()
