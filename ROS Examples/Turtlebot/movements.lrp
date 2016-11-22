@@ -1,0 +1,73 @@
+;;; New program created by johanfabry on 18 November 2016
+; This is a module of movement functionalities of the turtlebot
+
+; subscriptions: odom <- /odom (Odometry)
+; publications velocity -> /mobile_base/commands/velocity (Twist)
+
+; target variable specifies target distance or angle
+(var target := [0.5])
+(export movements)
+(machine movements
+	(state forward
+		(onentry (spawn forward moving)))
+	(state backward
+		(onentry (spawn backward moving)))
+	(state left
+		(onentry (spawn rotateLeft rotating)))
+	(state right
+		(onentry (spawn rotateRight rotating)))
+)
+
+(machine rotateLeft
+	(var angle := [nil])
+	(state rotating
+		(running [robot velocity: [:msg | msg angular z: 0.4]])
+	)
+	(state end)
+	(on reached rotating -> end)
+	(event reached [
+		angle := JFROSUtility poseOZ: robot odom pose pose.
+		angle > target
+			ifTrue: [ (angle - target) < 10]
+			ifFalse: [ (target - angle) < 10]])
+)
+
+(machine rotateRight
+	(var angle := [nil])
+	(state rotating
+		(running [robot velocity: [:msg | msg angular z: -0.4]])
+	)
+	(state end)
+	(on reached rotating -> end)
+	(event reached [
+		angle := JFROSUtility poseOZ: robot odom pose pose.
+		angle > target
+			ifTrue: [ (angle - target) < 10]
+			ifFalse: [ (target - angle) < 10]])
+)
+
+(machine forward
+	(var startpoint :=[
+		(robot odom pose pose position x)  @ 
+		 (robot odom pose pose position y)])
+	(state moving
+		(running [robot velocity: [:msg | msg linear x: 0.1]]))
+	(state end)
+	(on reached moving -> end)
+	(event reached [
+		(((robot odom pose pose position x) @ (robot odom pose pose position y)) 
+			 distanceTo: startpoint) >= target ])
+)
+
+(machine backward
+	(var startpoint :=[
+		(robot odom pose pose position x)  @ 
+		 (robot odom pose pose position y)])
+	(state moving
+		(running [robot velocity: [:msg | msg linear x: -0.1]]))
+	(state end)
+	(on reached moving -> end)
+	(event reached [
+		((robot odom pose pose position x) @ (robot odom pose pose position y)
+			distanceTo: startpoint) >= target  ])
+)
