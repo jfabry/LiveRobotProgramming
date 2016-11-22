@@ -6,6 +6,8 @@
 
 ; target variable specifies target distance or angle
 (var target := [0.5])
+; when finished is true, the work is done
+(var finished :=[false])
 (export movements)
 (machine movements
 	(state forward
@@ -22,6 +24,7 @@
 	(var angle := [nil])
 	(state rotating
 		(running [robot velocity: [:msg | msg angular z: 0.4]])
+		(onexit [finished := true])
 	)
 	(state end)
 	(on reached rotating -> end)
@@ -36,6 +39,7 @@
 	(var angle := [nil])
 	(state rotating
 		(running [robot velocity: [:msg | msg angular z: -0.4]])
+		(onexit [finished := true])
 	)
 	(state end)
 	(on reached rotating -> end)
@@ -51,7 +55,8 @@
 		(robot odom pose pose position x)  @ 
 		 (robot odom pose pose position y)])
 	(state moving
-		(running [robot velocity: [:msg | msg linear x: 0.1]]))
+		(running [robot velocity: [:msg | msg linear x: 0.1]])
+		(onexit [finished := true]))
 	(state end)
 	(on reached moving -> end)
 	(event reached [
@@ -64,7 +69,8 @@
 		(robot odom pose pose position x)  @ 
 		 (robot odom pose pose position y)])
 	(state moving
-		(running [robot velocity: [:msg | msg linear x: -0.1]]))
+		(running [robot velocity: [:msg | msg linear x: -0.1]])
+		(onexit [finished := true]))
 	(state end)
 	(on reached moving -> end)
 	(event reached [
