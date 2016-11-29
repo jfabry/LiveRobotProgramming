@@ -1,0 +1,47 @@
+;;; New program created by johanfabry on 29 November 2016
+;; Make the turtle move in a square
+;; imports movements.lrp module !
+
+(var ninety :=[75])
+(var oneighty :=[140])
+(var minniety :=[-70])
+(var target :=[0])
+(var finished :=[false])
+(import 'movements.lrp')
+(machine squaredance
+	(state init (onentry  [target := 0.2]))
+	(eps init -> forward)
+	(state forward
+		(onentry (spawn movements forward))
+		(onexit [target := ninety. finished := false]))
+	(on [finished] forward -> tleft)
+	(state tleft
+		(onentry (spawn movements left))
+		(onexit [target := 0.2. finished := false]))
+	(on [finished] tleft -> left)
+	(state left
+		(onentry (spawn movements forward))
+		(onexit  [target := oneighty. finished := false]))
+	(on [finished] left -> tback)
+	(state tback 
+		(onentry (spawn movements left))
+		(onexit [target := 0.2. finished := false]))
+	(on [finished] tback -> back)
+	(state back 
+		(onentry (spawn movements forward))
+		(onexit [target := ninety. finished := false]))
+	(on [finished] back -> tright)
+	(state tright 
+		(onentry (spawn movements right))
+		(onexit [target := 0.2. finished := false]))
+	(on [finished]  tright -> right)
+	(state right
+		(onentry (spawn movements backward))
+		(onexit  [target := 0. finished := false]))
+	(on [finished] right -> tforward)
+	(state tforward
+		(onentry (spawn movements right))
+		(onexit  [target := 0.2. finished := false]))
+	(on [finished] tforward -> forward)
+)
+(spawn squaredance init)
