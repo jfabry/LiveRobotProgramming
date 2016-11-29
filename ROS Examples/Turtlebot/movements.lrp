@@ -10,16 +10,36 @@
 (var finished :=[false])
 (export movements)
 (machine movements
-	(state forward
-		(onentry (spawn forward moving)))
-	(state backward
-		(onentry (spawn backward moving)))
-	(state left
-		(onentry (spawn rotateLeft rotating)))
-	(state right
-		(onentry (spawn rotateRight rotating)))
-)
 
+	(state forward (onentry (spawn forward moving))
+(machine forward
+	(var startpoint :=[
+		(robot odom pose pose position x)  @ 
+		 (robot odom pose pose position y)])
+	(state moving
+		(running [robot velocity: [:msg | msg linear x: 0.1]])
+		(onexit [finished := true]))
+	(state end)
+	(on reached moving -> end)
+	(event reached [
+		(((robot odom pose pose position x) @ (robot odom pose pose position y)) 
+			 distanceTo: startpoint) >= target ])))
+		
+	(state backward(onentry (spawn backward moving))
+(machine backward
+	(var startpoint :=[
+		(robot odom pose pose position x)  @ 
+		 (robot odom pose pose position y)])
+	(state moving
+		(running [robot velocity: [:msg | msg linear x: -0.1]])
+		(onexit [finished := true]))
+	(state end)
+	(on reached moving -> end)
+	(event reached [
+		((robot odom pose pose position x) @ (robot odom pose pose position y)
+			distanceTo: startpoint) >= target  ])))
+
+	(state left(onentry (spawn rotateLeft rotating))
 (machine rotateLeft
 	(var angle := [nil])
 	(state rotating
@@ -32,9 +52,9 @@
 		angle := JFROSUtility poseOZ: robot odom pose pose.
 		angle > target
 			ifTrue: [ (angle - target) < 10]
-			ifFalse: [ (target - angle) < 10]])
-)
+			ifFalse: [ (target - angle) < 10]])))
 
+	(state right (onentry (spawn rotateRight rotating))
 (machine rotateRight
 	(var angle := [nil])
 	(state rotating
@@ -47,33 +67,5 @@
 		angle := JFROSUtility poseOZ: robot odom pose pose.
 		angle > target
 			ifTrue: [ (angle - target) < 10]
-			ifFalse: [ (target - angle) < 10]])
-)
-
-(machine forward
-	(var startpoint :=[
-		(robot odom pose pose position x)  @ 
-		 (robot odom pose pose position y)])
-	(state moving
-		(running [robot velocity: [:msg | msg linear x: 0.1]])
-		(onexit [finished := true]))
-	(state end)
-	(on reached moving -> end)
-	(event reached [
-		(((robot odom pose pose position x) @ (robot odom pose pose position y)) 
-			 distanceTo: startpoint) >= target ])
-)
-
-(machine backward
-	(var startpoint :=[
-		(robot odom pose pose position x)  @ 
-		 (robot odom pose pose position y)])
-	(state moving
-		(running [robot velocity: [:msg | msg linear x: -0.1]])
-		(onexit [finished := true]))
-	(state end)
-	(on reached moving -> end)
-	(event reached [
-		((robot odom pose pose position x) @ (robot odom pose pose position y)
-			distanceTo: startpoint) >= target  ])
+			ifFalse: [ (target - angle) < 10]])))
 )
