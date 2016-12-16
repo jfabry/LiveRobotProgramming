@@ -1,0 +1,1 @@
+;; Concurrency using machines nested in the state that spawns it(machine o	(state p		(machine m			(state s)			(state t)			(ontime 1500 s->t)			(ontime 1500 t->s)		)		(machine n			(state a)			(state b)			(state c)			(ontime 2000 a->b)			(ontime 2000 b->c)			(ontime 2000 c->a)		)		(onentry (spawn m s))		(onentry (spawn n a))))(spawn o p)
